@@ -21,6 +21,8 @@ import {
 	TextDocument
 } from 'vscode-languageserver-textdocument';
 
+import { getSuggestions } from 'toy-kotlin-language-server'
+
 // Create a connection for the server, using Node's IPC as a transport.
 // Also include all preview / proposed LSP features.
 let connection = createConnection(ProposedFeatures.all);

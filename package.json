@@ -1,14 +1,13 @@
 {
-	"name": "lsp-sample",
-	"description": "A language server example",
-	"author": "Microsoft Corporation",
+	"name": "my-kotlin-code-completion",
+	"description": "An example of language server using antlr4-c3 for completion",
+	"author": "Strumenta s.r.l.",
 	"license": "MIT",
 	"version": "1.0.0",
 	"repository": {
 		"type": "git",
 		"url": "https://github.com/Microsoft/vscode-extension-samples"
 	},
-	"publisher": "vscode-samples",
 	"categories": [],
 	"keywords": [
 		"multi-root ready"
@@ -23,7 +22,9 @@
 		"languages": [
 			{
 				"id": "my-kotlin",
-				"extensions": [ ".mykt" ]
+				"extensions": [
+					".mykt"
+				]
 			}
 		]
 	},
@@ -41,6 +42,6 @@
 		"@types/node": "^12.12.0",
 		"eslint": "^6.4.0",
 		"@typescript-eslint/parser": "^2.3.0",
-		"typescript": "^4.0.2"
+		"typescript": "^3.9.7"
 	}
 }
