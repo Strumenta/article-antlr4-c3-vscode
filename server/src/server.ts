@@ -84,13 +84,10 @@ connection.onInitialized(() => {
 connection.onCompletion(
 	(_textDocumentPosition: TextDocumentPositionParams): CompletionItem[] => {
 		let document = documents.get(_textDocumentPosition.textDocument.uri);
-		let suggestions = getSuggestions(document.getText(), {
-			line: _textDocumentPosition.position.line,
-			column: _textDocumentPosition.position.character - 1 }, //The column is zero-based
+		let pos = _textDocumentPosition.position;
+		let suggestions = getSuggestions(document.getText(),
+			{ line: pos.line + 1, column: pos.character - 1 },
 			computeTokenPosition);
-		// The pass parameter contains the position of the text document in
-		// which code complete got requested. For the example we ignore this
-		// info and always provide the same completion items.
 		return suggestions.map(s => {
 			return {
 				label: s,
