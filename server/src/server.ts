@@ -19,7 +19,19 @@ import {
 	TextDocument
 } from 'vscode-languageserver-textdocument';
 
-import {computeTokenPosition, getSuggestions} from 'toy-kotlin-language-server'
+import {
+	computeTokenPosition,
+	getSuggestions,
+	getSuggestionsForParseTree, ImportHeaderContext,
+	ImportListContext,
+	KotlinLexer,
+	KotlinParser, SymbolTableVisitor
+} from 'toy-kotlin-language-server'
+import {CharStreams, CommonTokenStream} from "antlr4ts";
+import {SymbolTable} from "antlr4-c3";
+import * as pathFunctions from "path";
+import * as fs from "fs";
+import fileUriToPath = require("file-uri-to-path");
 
 // Create a connection for the server, using Node's IPC as a transport.
 // Also include all preview / proposed LSP features.
@@ -80,12 +92,74 @@ connection.onInitialized(() => {
 	}
 });
 
+function processImports(imports: ImportHeaderContext[], uri: string, symbolTableVisitor: SymbolTableVisitor) {
+	let basePath = ensurePath(uri);
+	let lastSep = basePath.lastIndexOf(pathFunctions.sep);
+	if(lastSep >= 0) {
+		basePath = basePath.substring(0, lastSep + 1);
+	} else {
+		basePath = "";
+	}
+	for(let i in imports) {
+		const filename = imports[i].identifier().text + ".mykt";
+		const filepath = basePath + filename;
+		if (fs.existsSync(filepath)) {
+			try {
+				let data = fs.readFileSync(filepath);
+				let input = CharStreams.fromString(data.toString());
+				let lexer = new KotlinLexer(input);
+				let parser = new KotlinParser(new CommonTokenStream(lexer));
+
+				let parseTree = parser.kotlinFile();
+				symbolTableVisitor.visit(parseTree);
+			} catch (e) {
+				connection.window.showErrorMessage("Cannot read from imported file " + filepath + ": " + e);
+				console.error(e);
+			}
+			//TODO
+		} else {
+			connection.window.showErrorMessage("Imported file not found: " + filepath);
+		}
+	}
+}
+
+function ensurePath(path: string) {
+	if (path.startsWith("file:")) {
+		//Decode for Windows paths like /C%3A/...
+		let decoded = decodeURIComponent(fileUriToPath(path));
+		if(!decoded.startsWith("\\\\") && decoded.startsWith("\\")) {
+			//Windows doesn't seem to like paths like \C:\...
+			decoded = decoded.substring(1);
+		}
+		return decoded;
+	} else if(!pathFunctions.isAbsolute(path)) {
+		return pathFunctions.resolve(path);
+	} else {
+		return path;
+	}
+}
+
+
 // This handler provides the initial list of the completion items.
 connection.onCompletion(
 	(_textDocumentPosition: TextDocumentPositionParams): CompletionItem[] => {
-		let document = documents.get(_textDocumentPosition.textDocument.uri);
+		let uri = _textDocumentPosition.textDocument.uri;
+		let document = documents.get(uri);
 		let pos = _textDocumentPosition.position;
-		let suggestions = getSuggestions(document.getText(),
+
+		let input = CharStreams.fromString(document.getText());
+		let lexer = new KotlinLexer(input);
+		let parser = new KotlinParser(new CommonTokenStream(lexer));
+
+		let parseTree = parser.kotlinFile();
+		let symbolTableVisitor = new SymbolTableVisitor();
+
+		let imports = parseTree?.preamble()?.importList()?.importHeader();
+		if(imports) {
+			processImports(imports, uri, symbolTableVisitor);
+		}
+
+		let suggestions = getSuggestionsForParseTree(parser, parseTree, symbolTableVisitor,
 			{ line: pos.line + 1, column: pos.character - 1 },
 			computeTokenPosition);
 		return suggestions.map(s => {
