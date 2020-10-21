@@ -92,34 +92,42 @@ connection.onInitialized(() => {
 	}
 });
 
-function processImports(imports: ImportHeaderContext[], uri: string, symbolTableVisitor: SymbolTableVisitor) {
+function computeBasePath(uri: string) {
 	let basePath = ensurePath(uri);
 	let lastSep = basePath.lastIndexOf(pathFunctions.sep);
-	if(lastSep >= 0) {
+	if (lastSep >= 0) {
 		basePath = basePath.substring(0, lastSep + 1);
 	} else {
 		basePath = "";
 	}
+	return basePath;
+}
+
+function processImports(imports: ImportHeaderContext[], uri: string, symbolTableVisitor: SymbolTableVisitor) {
+	let basePath = computeBasePath(uri);
 	for(let i in imports) {
 		const filename = imports[i].identifier().text + ".mykt";
 		const filepath = basePath + filename;
 		if (fs.existsSync(filepath)) {
-			try {
-				let data = fs.readFileSync(filepath);
-				let input = CharStreams.fromString(data.toString());
-				let lexer = new KotlinLexer(input);
-				let parser = new KotlinParser(new CommonTokenStream(lexer));
-
-				let parseTree = parser.kotlinFile();
-				symbolTableVisitor.visit(parseTree);
-			} catch (e) {
-				connection.window.showErrorMessage("Cannot read from imported file " + filepath + ": " + e);
-				console.error(e);
-			}
-			//TODO
+			processImport(filepath, symbolTableVisitor);
 		} else {
 			connection.window.showErrorMessage("Imported file not found: " + filepath);
 		}
+	}
+}
+
+function processImport(path: string, symbolTableVisitor: SymbolTableVisitor) {
+	try {
+		let data = fs.readFileSync(path);
+		let input = CharStreams.fromString(data.toString());
+		let lexer = new KotlinLexer(input);
+		let parser = new KotlinParser(new CommonTokenStream(lexer));
+
+		let parseTree = parser.kotlinFile();
+		symbolTableVisitor.visit(parseTree);
+	} catch (e) {
+		connection.window.showErrorMessage("Cannot read from imported file " + path + ": " + e);
+		console.error(e);
 	}
 }
 
@@ -152,9 +160,9 @@ connection.onCompletion(
 		let parser = new KotlinParser(new CommonTokenStream(lexer));
 
 		let parseTree = parser.kotlinFile();
-		let symbolTableVisitor = new SymbolTableVisitor();
-
 		let imports = parseTree?.preamble()?.importList()?.importHeader();
+
+		let symbolTableVisitor = new SymbolTableVisitor();
 		if(imports) {
 			processImports(imports, uri, symbolTableVisitor);
 		}
