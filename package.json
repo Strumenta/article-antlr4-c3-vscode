@@ -35,7 +35,7 @@
 		"compile": "tsc -b",
 		"watch": "tsc -b -w",
 		"webpack": "webpack --mode development",
-    	"webpack-dev": "webpack --mode development --watch",
+		"webpack-dev": "webpack --mode development --watch",
 		"postinstall": "cd client && npm install && cd ../server && npm install && cd ..",
 		"test": "sh ./scripts/e2e.sh"
 	},
