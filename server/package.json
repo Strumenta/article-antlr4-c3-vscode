@@ -1,6 +1,6 @@
 {
 	"name": "antlr4-c3-vscode-tutorial",
-	"description": "Example implementation of a code completion using antlr4-c3.",
+	"description": "Example implementation of code completion using antlr4-c3.",
 	"version": "1.0.0",
 	"author": "Strumenta",
 	"license": "MIT",

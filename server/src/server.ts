@@ -21,13 +21,13 @@ import {
 
 import {
 	computeTokenPosition,
-	getSuggestions,
 	getSuggestionsForParseTree, ImportHeaderContext,
-	ImportListContext,
 	KotlinLexer,
-	KotlinParser, SymbolTableVisitor
+	KotlinParser, SymbolTableVisitor,
+	setTokenMatcher, filterTokens_fuzzySearch
 } from 'toy-kotlin-language-server'
 import {CharStreams, CommonTokenStream} from "antlr4ts";
+import {TerminalNode} from "antlr4ts/tree";
 import {SymbolTable} from "antlr4-c3";
 import * as pathFunctions from "path";
 import * as fs from "fs";
@@ -43,6 +43,8 @@ let documents: TextDocuments<TextDocument> = new TextDocuments(TextDocument);
 let hasConfigurationCapability: boolean = false;
 let hasWorkspaceFolderCapability: boolean = false;
 let hasDiagnosticRelatedInformationCapability: boolean = false;
+
+setTokenMatcher(filterTokens_fuzzySearch);
 
 connection.onInitialize((params: InitializeParams) => {
 	let capabilities = params.capabilities;
@@ -167,9 +169,17 @@ connection.onCompletion(
 			processImports(imports, uri, symbolTableVisitor);
 		}
 
+		function computeTokenPositionForCompletion(parseTree, caretPosition) {
+			let pos = computeTokenPosition(parseTree, caretPosition);
+			if(pos.context instanceof TerminalNode && pos.context.symbol.type == KotlinParser.Identifier) {
+				pos.index--;
+			}
+			return pos;
+		}
+
 		let suggestions = getSuggestionsForParseTree(parser, parseTree, symbolTableVisitor,
-			{ line: pos.line + 1, column: pos.character - 1 },
-			computeTokenPosition);
+			{ line: pos.line + 1, column: pos.character },
+			computeTokenPositionForCompletion);
 		return suggestions.map(s => {
 			return {
 				label: s,
