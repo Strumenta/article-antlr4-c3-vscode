@@ -158,7 +158,8 @@ connection.onCompletion(
 
 		let input = CharStreams.fromString(document.getText());
 		let lexer = new KotlinLexer(input);
-		let parser = new KotlinParser(new CommonTokenStream(lexer));
+		let tokenStream = new CommonTokenStream(lexer);
+		let parser = new KotlinParser(tokenStream);
 
 		let parseTree = parser.kotlinFile();
 		let imports = parseTree?.preamble()?.importList()?.importHeader();
@@ -167,11 +168,15 @@ connection.onCompletion(
 		if(imports) {
 			processImports(imports, uri, symbolTableVisitor);
 		}
+		let position = computeTokenPosition(
+			parseTree, tokenStream,{ line: pos.line + 1, column: pos.character }, [ KotlinParser.Identifier ]);
+		if(!position) {
+			return [];
+		}
 
-		let suggestions = getSuggestionsForParseTree(parser, parseTree, symbolTableVisitor,
-			{ line: pos.line + 1, column: pos.character },
-			// @ts-ignore
-			tokenPositionComputer([ KotlinParser.Identifier ]));
+		let suggestions = getSuggestionsForParseTree(parser, parseTree,
+			() => symbolTableVisitor.visit(parseTree),
+			position);
 		return suggestions.map(s => {
 			return {
 				label: s,

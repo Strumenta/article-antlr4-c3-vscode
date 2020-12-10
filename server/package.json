@@ -14,7 +14,7 @@
 	"dependencies": {
 		"@types/node": "^14.11.5",
 		"file-uri-to-path": "^2.0.0",
-		"toy-kotlin-language-server": "https://github.com/Strumenta/article-antlr4-c3/releases/download/1.1.0/toy-kotlin-language-server-1.1.0.tgz",
+		"toy-kotlin-language-server": "https://github.com/Strumenta/article-antlr4-c3/releases/download/v1.2.0/toy-kotlin-language-server-1.2.0.tgz",
 		"vscode-languageserver": "^6.1.1",
 		"vscode-languageserver-textdocument": "^1.0.1"
 	},

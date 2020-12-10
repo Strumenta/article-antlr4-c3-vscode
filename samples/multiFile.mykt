@@ -1,5 +1,7 @@
 import variables
 
+var someOtherVariable
+
 fun foo() {
     val fooBar = 3;
     val baz = fb //<-- Place the cursor here, just after the 'b', and press Ctrl + Space
