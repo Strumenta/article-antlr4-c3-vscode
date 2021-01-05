@@ -1,14 +1,17 @@
-# LSP Example
+# Integrating Code Completion in Visual Studio Code – With the Language Server Protocol
 
-Heavily documented sample code for https://code.visualstudio.com/api/language-extensions/language-server-extension-guide
+This repository contains the code for the article, [Integrating Code Completion in Visual Studio Code – With the Language Server Protocol](https://tomassetti.me/integrating-code-completion-in-visual-studio-code-with-the-language-server-protocol/), published on the Strumenta blog.
+
+The code is released under the Apache license and is intended for demonstration purposes only.
 
 ## Functionality
 
-This Language Server works for plain text file. It has the following language features:
-- Completions
-- Diagnostics regenerated on each file change or configuration change
+This Language Server works for a subset of the Kotlin language, stored in files with the .mykt extension (so as not to clash with proper Kotlin support). It has the following language features:
+- Code Completion (both syntactic and semantic)
 
 It also includes an End-to-End test.
+
+The code was originally adapted from Microsoft's LSP samples.
 
 ## Structure
 
