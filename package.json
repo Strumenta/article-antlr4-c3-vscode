@@ -29,7 +29,7 @@
 			}
 		]
 	},
-	"main": "./dist/extension",
+	"main": "./client/out/extension",
 	"scripts": {
 		"vscode:prepublish": "npm run compile && webpack --mode production",
 		"compile": "tsc -b",
